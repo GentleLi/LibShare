@@ -1,0 +1,81 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 27
+
+
+
+    defaultConfig {
+        minSdkVersion 15
+        targetSdkVersion 27
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+    }
+    sourceSets {
+        main {
+            manifest.srcFile 'src/main/AndroidManifest.xml'
+            java.srcDirs = ['src/main/java']
+            aidl.srcDirs = ['src/main/']
+            renderscript.srcDirs = ['src/main/']
+            res.srcDirs = ['src/main/res']
+            assets.srcDirs = ['assets']
+            jni.srcDirs = []
+            jniLibs.srcDirs = ['src/main/jniLibs']
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    implementation 'com.android.support:appcompat-v7:27.1.1'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+}
+
+//generatejar_makeJar是任务名称,推荐通过mouldeName+actionName(考虑多模块问题)
+//类型是copy操作
+task generatejar_makeJar(type: Copy) {
+    //指定来源文件夹
+    from('build/intermediates/bundles/release')
+    //指定目的文件夹（目的文件如果已经存在,不需要先执行删除,会执行覆盖.）
+    into('build/libs')
+    //指定来源文件
+    include('classes.jar')
+    //给复制后的文件重命名
+    rename('classes.jar', 'generatejar.jar')
+}
+//generatejar_makeJar的执行依赖于build(build先去生成对应的源文件)
+generatejar_makeJar.dependsOn(build)
+
+//定义任务指定来源文件夹、目的文件夹、来源文件、并且重命名
+//目的文件如果已经存在,不需要先执行删除,会执行覆盖.
+//generateaar_makeAar 是任务名称,推荐通过mouldeName+actionName(考虑多模块问题)
+//include指定包含那些文件(下面表示所有的aar类型)
+task makeAarRelease(type: Copy) {
+    String aarName = "ShareLib.aar"
+    //删除存在的
+    delete "build/aar/" + aarName
+
+    from('build/outputs/aar')
+    into('build/aar')
+    include('*.aar')
+    //重命名
+    rename("${MODULE_NAME}-release.aar", aarName)
+}
+//generateaar_makeAar依赖build(build生成相关源文件)
+makeAarRelease.dependsOn(build)
+
+
